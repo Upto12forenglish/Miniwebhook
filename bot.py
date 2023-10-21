@@ -32,4 +32,4 @@ def main():
         bot.send_message(chat_id, message_text)
 
 if __name__ == '__main__':
-    run(host='0.0.0.0', port=8080, debug=True)
+    run(host='0.0.0.0', port=8501, debug=True)
