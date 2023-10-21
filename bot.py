@@ -1,29 +1,35 @@
+from bottle import run, post, request as bottle_request  # <--- we add bottle request
 import telebot
-from flask import Flask, request
 
+# Replace 'YOUR_TOKEN' with your actual Telegram Bot token
 token = '6092786649:AAGsiM_0resGLglZTtRc-9iJtod2TagIhNE'
-secret = 'uigwd98w90dw099dwer'
-url = 'https://ut12-miniwebhook.streamlit.app/' + secret
+bot = telebot.TeleBot(token)
 
-bot = telebot.TeleBot(token, threaded = False)
-bot.remove_webhook()
-bot.set_webhook(url=url)
+def change_text_message(text):
+    # Custom function to manipulate the text (e.g., reverse it)
+    return text[::-1]
 
-app = Flask(__name__)
-@app.route('/'+secret, methods=['Post'])
-def webhook():
-    update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
-    bot.process_new_updates([update])
-    return 'ok', 200
+@post('/'.format(token))  # our python function based endpoint
+def main():
+    data = bottle_request.json  # <--- extract all request data
+    print(data)
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, 'Hello, Welcome to the bot!')
+    # Process the message (you may include additional logic here)
+    if 'message' in data:
+        message = data['message']
+        print('Message: ', message)
+        # Extract message text
+        message_text = data['message']['text']
+        print('Message text: ', message_text)
+        # Chat ID from the received message
+        chat_id = data['message']['chat']['id']
+        print('Chat id: ', chat_id)
 
-@bot.message_handler(commands=['help'])
-def help(message):
-    bot.send_message(message.chat.id, 'How can I help you?')
+        # # Change the message text (e.g., reverse it)
+        # message_text = change_text_message(message_text)
 
-@bot.message_handler(content_types=['text'])
-def echo(message):
-    bot.send_message(message.chat.id, message.text)
+        # # Send the modified message back to the chat
+        bot.send_message(chat_id, message_text)
+
+if __name__ == '__main__':
+    run(host='0.0.0.0', port=8080, debug=True)
